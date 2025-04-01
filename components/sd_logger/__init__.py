@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import spi
-from esphome.const import CONF_ID, CONF_FRAMEWORK
+from esphome.const import CONF_ID, CONF_FRAMEWORK, CONF_MOSI, CONF_MISO, CONF_CLK
 
 DEPENDENCIES = ["spi"]
 
@@ -24,12 +24,25 @@ CONFIG_SCHEMA = (
     })
     .extend(cv.COMPONENT_SCHEMA)
     .extend(spi.spi_device_schema(cs_pin_required=True))
+    .extend({
+       cv.Optional(CONF_MOSI): cv.gpio_output_pin_schema,
+       cv.Optional(CONF_MISO): cv.gpio_input_pin_schema,
+       cv.Optional(CONF_CLK): cv.gpio_output_pin_schema,
+    })
 )
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await spi.register_spi_device(var, config)
+    
+    # Set additional pins if defined
+    if CONF_MOSI in config:
+        cg.add(var.set_mosi_pin(cg.new_Pin(config[CONF_MOSI])))
+    if CONF_MISO in config:
+        cg.add(var.set_miso_pin(cg.new_Pin(config[CONF_MISO])))
+    if CONF_CLK in config:
+        cg.add(var.set_clk_pin(cg.new_Pin(config[CONF_CLK])))
     
     # Use the explicitly provided framework option
     if config[CONF_EXPLICIT_FRAMEWORK] == FRAMEWORK_ARDUINO:
