@@ -21,11 +21,11 @@ async def to_code(config):
     await cg.register_component(var, config)
     await spi.register_spi_device(var, config)
     
-    # Framework-spezifische Optionen hinzufügen
-    # Für Arduino
-    if CONF_FRAMEWORK not in cg.CORE.config or cg.CORE.config[CONF_FRAMEWORK] == "arduino":
-        cg.add_library('SD', None)
-        cg.add_define("USE_ARDUINO")
-    # Für ESP-IDF
-    else:
-        cg.add_define("USE_ESP_IDF")
+  # Framework-spezifische Optionen hinzufügen
+# Für Arduino
+if CONF_FRAMEWORK not in cg.CORE.config or cg.CORE.config[CONF_FRAMEWORK] == "arduino":
+    cg.add_library('SD', None)
+    cg.add_define("USE_ARDUINO")
+# Für ESP-IDF
+else:
+    cg.add_define("USE_ESP_IDF")
