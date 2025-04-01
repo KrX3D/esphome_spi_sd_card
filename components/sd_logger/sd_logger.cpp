@@ -13,11 +13,17 @@ void SDLogger::setup() {
 #if defined(SD_LOGGER_USE_ESP_IDF)
   ESP_LOGI(TAG, "Using ESP-IDF framework");
 
-  // Retrieve pin numbers. (Ensure that in your YAML these pins are provided.)
+  // Retrieve SPI bus pin numbers from the provided pins.
+  // These must be supplied in the sd_logger configuration when using ESP-IDF.
   int mosi_pin = (this->mosi_pin_ != nullptr) ? this->mosi_pin_->get_pin() : -1;
   int miso_pin = (this->miso_pin_ != nullptr) ? this->miso_pin_->get_pin() : -1;
   int sclk_pin = (this->clk_pin_ != nullptr) ? this->clk_pin_->get_pin() : -1;
-  int cs_pin = this->cs_->get_pin();  // 'cs_' is provided by SPIDevice
+  int cs_pin = this->cs_->get_pin();
+
+  if (mosi_pin < 0 || miso_pin < 0 || sclk_pin < 0) {
+    ESP_LOGE(TAG, "Missing SPI bus pins in configuration");
+    return;
+  }
 
   spi_bus_config_t bus_cfg = {
       .mosi_io_num = mosi_pin,
@@ -38,10 +44,9 @@ void SDLogger::setup() {
       .format_if_mount_failed = false,
       .max_files = 5,
       .allocation_unit_size = 16 * 1024,
-      // Other fields left at their defaults.
   };
 
-  // Replace SDMMC_HOST_SLOT_1 with 1 if the macro is not available.
+  // Using slot 1 (adjust if needed)
   sdmmc_host_t host = {
       .flags = SDMMC_HOST_FLAG_SPI,
       .slot = 1,
@@ -79,15 +84,14 @@ void SDLogger::setup() {
   }
 
   this->card_mounted_ = true;
-  // Define SD_OCR_SDHC_CAP if it isn’t already defined.
 #ifndef SD_OCR_SDHC_CAP
   #define SD_OCR_SDHC_CAP 0x40
 #endif
-  this->card_type_ = card_->ocr & SD_OCR_SDHC_CAP ? 1 : 0;  // Determine if SDHC
+  this->card_type_ = card_->ocr & SD_OCR_SDHC_CAP ? 1 : 0;
 
   ESP_LOGI(TAG, "SD Card mounted successfully");
 
-#else
+#else  // Arduino framework
   ESP_LOGI(TAG, "Using Arduino framework");
   
   int cs_pin = this->cs_->get_pin();
@@ -121,7 +125,6 @@ void SDLogger::loop() {
 void SDLogger::dump_config() {
   ESP_LOGCONFIG(TAG, "SD Logger:");
   ESP_LOGCONFIG(TAG, "  Mounted: %s", this->card_mounted_ ? "Yes" : "No");
-  // Dump other configuration parameters if needed.
 }
 
 }  // namespace sd_logger
