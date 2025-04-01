@@ -3,11 +3,12 @@
 #include "esphome/core/component.h"
 
 // Determine which includes to use based on the defined framework
-#ifdef USE_ESP_IDF
+#if defined(SD_LOGGER_USE_ESP_IDF)
   #include "esp_vfs_fat.h"
+  #include "driver/sdmmc_host.h"
+  #include "driver/sdspi_host.h"
   #include "sdmmc_cmd.h"
-#else
-  // Arduino framework
+#else // Arduino framework
   #include <SD.h>
   #include <FS.h>
 #endif
@@ -23,14 +24,14 @@ class SDLogger : public Component,
   void loop() override;
   void dump_config() override;
   
-  // Dateifunktionen
+  // File functions
   void appendFile(const char *filename, const char *message);
   void writeFile(const char *filename, const char *message);
   char *getFirstFileFilename(const char *dir = "/");
   char *readFile(const char *filename);
   void deleteFile(const char *filename);
   
-  // SD-Karten-Informationen
+  // SD card information
   bool isCardMounted() { return this->card_mounted_; }
   uint64_t getTotalBytes();
   uint64_t getUsedBytes();
@@ -47,7 +48,7 @@ class SDLogger : public Component,
   char *createFilename(const char *filename);
   bool card_mounted_{false};
   
-#ifdef USE_ESP_IDF
+#if defined(SD_LOGGER_USE_ESP_IDF)
   sdmmc_card_t *card_{nullptr};
 #endif
 
