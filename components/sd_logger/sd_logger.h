@@ -2,21 +2,14 @@
 #include "esphome/components/spi/spi.h"
 #include "esphome/core/component.h"
 
-// Conditional compilation based on the framework
+// Determine which includes to use based on the defined framework
 #ifdef USE_ESP_IDF
   #include "esp_vfs_fat.h"
   #include "sdmmc_cmd.h"
-#else  // Arduino framework
-  #if defined(ESP32)
-    #include <SD.h>
-    #include <FS.h>
-  #elif defined(ESP8266)
-    #include <SD.h>
-    #include <FS.h>
-  #else
-    // Fallback for other Arduino platforms
-    #include <SD.h>
-  #endif
+#else
+  // Arduino framework
+  #include <SD.h>
+  #include <FS.h>
 #endif
 
 namespace esphome {
