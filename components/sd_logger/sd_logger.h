@@ -1,14 +1,18 @@
 #pragma once
 #include "esphome/components/spi/spi.h"
 #include "esphome/core/component.h"
+#include "esphome/core/defines.h"
 
 // Bedingte Kompilierung basierend auf dem Framework
 #ifdef USE_ESP_IDF
   #include "esp_vfs_fat.h"
   #include "sdmmc_cmd.h"
 #else
-  #include "FS.h"
   #include "SD.h"
+  // Include FS.h only if we're using Arduino framework
+  #if defined(ARDUINO)
+    #include "FS.h"
+  #endif
 #endif
 
 namespace esphome {
