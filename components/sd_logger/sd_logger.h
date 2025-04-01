@@ -43,8 +43,8 @@ class SDLogger : public Component,
   bool fileExists(const char *filename);
   bool hasEnoughSpace(size_t size);
 
-  // Setters for extra SPI pins (for ESP-IDF)
 #if defined(SD_LOGGER_USE_ESP_IDF)
+  // Setters for additional SPI pins (needed in ESP-IDF mode)
   void set_mosi_pin(GPIOPin *pin) { this->mosi_pin_ = pin; }
   void set_miso_pin(GPIOPin *pin) { this->miso_pin_ = pin; }
   void set_clk_pin(GPIOPin *pin) { this->clk_pin_ = pin; }
@@ -61,7 +61,7 @@ class SDLogger : public Component,
   uint8_t card_type_{0};
 
 #if defined(SD_LOGGER_USE_ESP_IDF)
-  // Pointers to additional SPI bus pins
+  // Pointers for extra SPI bus pins
   GPIOPin *mosi_pin_{nullptr};
   GPIOPin *miso_pin_{nullptr};
   GPIOPin *clk_pin_{nullptr};
