@@ -5,13 +5,24 @@ from esphome.const import CONF_ID, CONF_FRAMEWORK
 
 DEPENDENCIES = ["spi"]
 
+# Add new constants for framework selection
+CONF_FRAMEWORK = "framework"
+FRAMEWORK_ARDUINO = "arduino"
+FRAMEWORK_ESP_IDF = "esp_idf"
+
 sd_logger_ns = cg.esphome_ns.namespace("sd_logger")
 SDLogger = sd_logger_ns.class_(
     "SDLogger", cg.Component, spi.SPIDevice
 )
 
+# Update schema to include framework selection
 CONFIG_SCHEMA = (
-    cv.Schema({cv.GenerateID(): cv.declare_id(SDLogger)})
+    cv.Schema({
+        cv.GenerateID(): cv.declare_id(SDLogger),
+        cv.Optional(CONF_FRAMEWORK, default=FRAMEWORK_ARDUINO): cv.one_of(
+            FRAMEWORK_ARDUINO, FRAMEWORK_ESP_IDF, lower=True
+        ),
+    })
     .extend(cv.COMPONENT_SCHEMA)
     .extend(spi.spi_device_schema(cs_pin_required=True))
 )
@@ -21,11 +32,9 @@ async def to_code(config):
     await cg.register_component(var, config)
     await spi.register_spi_device(var, config)
     
-    # For Arduino frameworks, we need to be more specific about which SD library to use
-    if CONF_FRAMEWORK not in cg.CORE.config or cg.CORE.config[CONF_FRAMEWORK] == "arduino":
-        # Specify a specific SD library with owner to avoid conflicts
+    # Use the explicitly provided framework option
+    if config[CONF_FRAMEWORK] == FRAMEWORK_ARDUINO:
         cg.add_library('arduino-libraries/SD', '1.3.0')
-        # The FS library is part of the ESP32 Arduino core, not a separate library
         cg.add_define("USE_ARDUINO")
-    else:
+    else:  # ESP-IDF
         cg.add_define("USE_ESP_IDF")
