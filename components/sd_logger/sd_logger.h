@@ -2,7 +2,6 @@
 #include "esphome/components/spi/spi.h"
 #include "esphome/core/component.h"
 
-// Determine which includes to use based on the defined framework
 #if defined(SD_LOGGER_USE_ESP_IDF)
   #include "esp_vfs_fat.h"
   #include "driver/sdmmc_host.h"
@@ -44,6 +43,13 @@ class SDLogger : public Component,
   bool fileExists(const char *filename);
   bool hasEnoughSpace(size_t size);
 
+  // Setters for extra SPI pins (for ESP-IDF)
+#if defined(SD_LOGGER_USE_ESP_IDF)
+  void set_mosi_pin(GPIOPin *pin) { this->mosi_pin_ = pin; }
+  void set_miso_pin(GPIOPin *pin) { this->miso_pin_ = pin; }
+  void set_clk_pin(GPIOPin *pin) { this->clk_pin_ = pin; }
+#endif
+
  protected:
   char *createFilename(const char *filename);
   bool card_mounted_{false};
@@ -53,6 +59,13 @@ class SDLogger : public Component,
 #endif
 
   uint8_t card_type_{0};
+
+#if defined(SD_LOGGER_USE_ESP_IDF)
+  // Pointers to additional SPI bus pins
+  GPIOPin *mosi_pin_{nullptr};
+  GPIOPin *miso_pin_{nullptr};
+  GPIOPin *clk_pin_{nullptr};
+#endif
 };
 
 }  // namespace sd_logger
