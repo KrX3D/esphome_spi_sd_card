@@ -1,17 +1,21 @@
 #pragma once
 #include "esphome/components/spi/spi.h"
 #include "esphome/core/component.h"
-#include "esphome/core/defines.h"
 
-// Bedingte Kompilierung basierend auf dem Framework
+// Conditional compilation based on the framework
 #ifdef USE_ESP_IDF
   #include "esp_vfs_fat.h"
   #include "sdmmc_cmd.h"
-#else
-  #include "SD.h"
-  // Include FS.h only if we're using Arduino framework
-  #if defined(ARDUINO)
-    #include "FS.h"
+#else  // Arduino framework
+  #if defined(ESP32)
+    #include <SD.h>
+    #include <FS.h>
+  #elif defined(ESP8266)
+    #include <SD.h>
+    #include <FS.h>
+  #else
+    // Fallback for other Arduino platforms
+    #include <SD.h>
   #endif
 #endif
 
