@@ -1,7 +1,15 @@
 #pragma once
-
 #include "esphome/components/spi/spi.h"
 #include "esphome/core/component.h"
+
+// Bedingte Kompilierung basierend auf dem Framework
+#ifdef USE_ESP_IDF
+  #include "esp_vfs_fat.h"
+  #include "sdmmc_cmd.h"
+#else
+  #include "FS.h"
+  #include "SD.h"
+#endif
 
 namespace esphome {
 namespace sd_logger {
@@ -13,14 +21,36 @@ class SDLogger : public Component,
   void setup() override;
   void loop() override;
   void dump_config() override;
+  
+  // Dateifunktionen
   void appendFile(const char *filename, const char *message);
   void writeFile(const char *filename, const char *message);
   char *getFirstFileFilename(const char *dir = "/");
   char *readFile(const char *filename);
   void deleteFile(const char *filename);
+  
+  // SD-Karten-Informationen
+  bool isCardMounted() { return this->card_mounted_; }
+  uint64_t getTotalBytes();
+  uint64_t getUsedBytes();
+  uint64_t getFreeBytes();
+  const char* getCardType();
+  const char* getFileSystemType();
+  bool formatCard(const char* type = "FAT");
+  bool createDirectory(const char *path);
+  bool removeDirectory(const char *path);
+  bool fileExists(const char *filename);
+  bool hasEnoughSpace(size_t size);
 
  protected:
   char *createFilename(const char *filename);
+  bool card_mounted_{false};
+  
+#ifdef USE_ESP_IDF
+  sdmmc_card_t *card_{nullptr};
+#endif
+
+  uint8_t card_type_{0};
 };
 
 }  // namespace sd_logger
