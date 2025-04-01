@@ -21,13 +21,11 @@ async def to_code(config):
     await cg.register_component(var, config)
     await spi.register_spi_device(var, config)
     
-    # Framework-spezifische Optionen hinzufügen
-    # Für Arduino
+    # For Arduino frameworks, we need to be more specific about which SD library to use
     if CONF_FRAMEWORK not in cg.CORE.config or cg.CORE.config[CONF_FRAMEWORK] == "arduino":
-        cg.add_library('SD', None)
-        # Add this line here:
-        cg.add_library('FS', None)  
+        # Specify a specific SD library with owner to avoid conflicts
+        cg.add_library('arduino-libraries/SD', '1.3.0')
+        # The FS library is part of the ESP32 Arduino core, not a separate library
         cg.add_define("USE_ARDUINO")
-    # Für ESP-IDF
     else:
         cg.add_define("USE_ESP_IDF")
