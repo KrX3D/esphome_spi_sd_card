@@ -21,14 +21,13 @@ CONFIG_SCHEMA = (
         cv.Optional(CONF_EXPLICIT_FRAMEWORK, default=FRAMEWORK_ARDUINO): cv.one_of(
             FRAMEWORK_ARDUINO, FRAMEWORK_ESP_IDF, lower=True
         ),
+        # Extend the schema to accept additional SPI pins for ESP-IDF:
+        cv.Optional(CONF_MOSI): cv.gpio_output_pin_schema,
+        cv.Optional(CONF_MISO): cv.gpio_input_pin_schema,
+        cv.Optional(CONF_CLK): cv.gpio_output_pin_schema,
     })
     .extend(cv.COMPONENT_SCHEMA)
     .extend(spi.spi_device_schema(cs_pin_required=True))
-    .extend({
-       cv.Optional(CONF_MOSI): cv.gpio_output_pin_schema,
-       cv.Optional(CONF_MISO): cv.gpio_input_pin_schema,
-       cv.Optional(CONF_CLK): cv.gpio_output_pin_schema,
-    })
 )
 
 async def to_code(config):
@@ -36,15 +35,15 @@ async def to_code(config):
     await cg.register_component(var, config)
     await spi.register_spi_device(var, config)
     
-    # Set additional pins if defined
-    if CONF_MOSI in config:
-        cg.add(var.set_mosi_pin(cg.new_Pin(config[CONF_MOSI])))
-    if CONF_MISO in config:
-        cg.add(var.set_miso_pin(cg.new_Pin(config[CONF_MISO])))
-    if CONF_CLK in config:
-        cg.add(var.set_clk_pin(cg.new_Pin(config[CONF_CLK])))
+    # For ESP-IDF, store the additional SPI pins if provided.
+    if config[CONF_EXPLICIT_FRAMEWORK] == FRAMEWORK_ESP_IDF:
+        if CONF_MOSI in config:
+            cg.add(var.set_mosi_pin(cg.new_Pin(config[CONF_MOSI])))
+        if CONF_MISO in config:
+            cg.add(var.set_miso_pin(cg.new_Pin(config[CONF_MISO])))
+        if CONF_CLK in config:
+            cg.add(var.set_clk_pin(cg.new_Pin(config[CONF_CLK])))
     
-    # Use the explicitly provided framework option
     if config[CONF_EXPLICIT_FRAMEWORK] == FRAMEWORK_ARDUINO:
         cg.add_library('arduino-libraries/SD', '1.3.0')
         cg.add_define("SD_LOGGER_USE_ARDUINO", "1")
