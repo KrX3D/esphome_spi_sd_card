@@ -5,8 +5,8 @@ from esphome.const import CONF_ID, CONF_FRAMEWORK
 
 DEPENDENCIES = ["spi"]
 
-# Add new constants for framework selection
-CONF_FRAMEWORK = "framework"
+# Define the framework option
+CONF_EXPLICIT_FRAMEWORK = "explicit_framework"
 FRAMEWORK_ARDUINO = "arduino"
 FRAMEWORK_ESP_IDF = "esp_idf"
 
@@ -15,11 +15,10 @@ SDLogger = sd_logger_ns.class_(
     "SDLogger", cg.Component, spi.SPIDevice
 )
 
-# Update schema to include framework selection
 CONFIG_SCHEMA = (
     cv.Schema({
         cv.GenerateID(): cv.declare_id(SDLogger),
-        cv.Optional(CONF_FRAMEWORK, default=FRAMEWORK_ARDUINO): cv.one_of(
+        cv.Optional(CONF_EXPLICIT_FRAMEWORK, default=FRAMEWORK_ARDUINO): cv.one_of(
             FRAMEWORK_ARDUINO, FRAMEWORK_ESP_IDF, lower=True
         ),
     })
@@ -33,8 +32,8 @@ async def to_code(config):
     await spi.register_spi_device(var, config)
     
     # Use the explicitly provided framework option
-    if config[CONF_FRAMEWORK] == FRAMEWORK_ARDUINO:
+    if config[CONF_EXPLICIT_FRAMEWORK] == FRAMEWORK_ARDUINO:
         cg.add_library('arduino-libraries/SD', '1.3.0')
-        cg.add_define("USE_ARDUINO")
+        cg.add_define("SD_LOGGER_USE_ARDUINO", "1")
     else:  # ESP-IDF
-        cg.add_define("USE_ESP_IDF")
+        cg.add_define("SD_LOGGER_USE_ESP_IDF", "1")
