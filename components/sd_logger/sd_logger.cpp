@@ -1,6 +1,15 @@
+#include "sd_logger.h"
+#include "esphome/core/log.h"
+#include <cstdint>  // For uint8_t and fixed-width types
+
+namespace esphome {
+namespace sd_logger {
+
+static const char *TAG = "sd_logger";
+
 void SDLogger::setup() {
   ESP_LOGI(TAG, "Initializing SD card...");
-  
+
 #if defined(SD_LOGGER_USE_ESP_IDF)
   // ESP-IDF Implementation
   ESP_LOGI(TAG, "Using ESP-IDF framework");
@@ -97,3 +106,19 @@ void SDLogger::setup() {
   ESP_LOGI(TAG, "Card Size: %lluMB", SD.cardSize() / (1024 * 1024));
 #endif
 }
+
+void SDLogger::loop() {
+  // Add loop functionality if required.
+}
+
+void SDLogger::dump_config() {
+  ESP_LOGCONFIG(TAG, "SD Logger:");
+  ESP_LOGCONFIG(TAG, "  Mounted: %s", this->card_mounted_ ? "Yes" : "No");
+  // Add additional configuration dump as needed.
+}
+
+// Additional member function implementations would follow here...
+// For example: appendFile, writeFile, readFile, deleteFile, etc.
+
+}  // namespace sd_logger
+}  // namespace esphome
